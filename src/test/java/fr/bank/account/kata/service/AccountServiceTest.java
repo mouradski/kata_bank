@@ -251,13 +251,13 @@ public class AccountServiceTest {
 
         //When
         final Balance balance = accountService.getBalance(accountId);
-        
+
         //Then
         Assertions.assertEquals(1150d, balance.getAmount());
     }
 
     @Test
-    public void should_success_and_return_zero_balance_when_get_balance_no_operations_on_account() {
+    public void should_success_and_return_zero_balance_when_no_operations_on_account() {
         //Given
         String accountId = UUID.randomUUID().toString();
         Mockito.when(accountRepository.existsAccountById(eq(accountId))).thenReturn(true);
