@@ -106,13 +106,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private Double calculateNewBalance(String accountId, Double operationAmount, OperationType operationType) {
-        Optional<Operation> lastOperation = getLastOperation(accountId);
-
-        Double lastBalance = 0d;
-
-        if (lastOperation.isPresent()) {
-            lastBalance = lastOperation.get().getBalance();
-        }
+        final Double lastBalance = getBalanceAmount(accountId);
 
         if (OperationType.CREDIT.equals(operationType)) {
             return lastBalance + operationAmount;
