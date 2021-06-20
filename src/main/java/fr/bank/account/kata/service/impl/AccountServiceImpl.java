@@ -1,8 +1,6 @@
 package fr.bank.account.kata.service.impl;
 
-import fr.bank.account.kata.error.AccountAlreadyExistsException;
-import fr.bank.account.kata.error.AccountNotFoundException;
-import fr.bank.account.kata.error.InsufficientBalanceException;
+import fr.bank.account.kata.error.*;
 import fr.bank.account.kata.model.Account;
 import fr.bank.account.kata.model.Balance;
 import fr.bank.account.kata.model.Operation;
@@ -79,6 +77,14 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private Balance executeOperation(String accountId, Double amount, OperationType operationType) {
+        if (amount == null || amount == 0) {
+            throw new NullOrZeroAmountException();
+        }
+
+        if (amount < 0) {
+            throw new NegativeAmountException();
+        }
+
         final Account account = getAccount(accountId);
 
         final Double newBalance = calculateNewBalance(accountId, amount, operationType);
@@ -119,6 +125,10 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private Double getBalanceAmount(String accountId) {
+        if (!accountRepository.existsAccountById(accountId)) {
+            throw new AccountNotFoundException();
+        }
+
         Optional<Operation> lastOperation = getLastOperation(accountId);
 
         if (lastOperation.isPresent()) {

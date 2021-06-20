@@ -1,8 +1,6 @@
 package fr.bank.account.kata.service;
 
-import fr.bank.account.kata.error.AccountAlreadyExistsException;
-import fr.bank.account.kata.error.AccountNotFoundException;
-import fr.bank.account.kata.error.InsufficientBalanceException;
+import fr.bank.account.kata.error.*;
 import fr.bank.account.kata.model.Account;
 import fr.bank.account.kata.model.Balance;
 import fr.bank.account.kata.model.Operation;
@@ -79,7 +77,9 @@ public class AccountServiceTest {
     public void should_fail_when_execute_operations_on_nonexistent_account() {
         //Given
         String accountId = UUID.randomUUID().toString();
-        Mockito.when(accountRepository.getAccountById(eq(accountId))).thenReturn(Optional.empty());
+        Mockito.when(accountRepository.existsAccountById(eq(accountId))).thenReturn(false);
+        //Mockito.when(accountRepository.getAccountById(eq(accountId))).thenReturn(Optional.empty());
+        //Mockito.when(operationRepository.findLastOperationByAccountId(eq(accountId))).thenReturn(Optional.of(Operation.builder().amount(100d).build()));
 
         Assertions.assertThrows(
                 //Then
@@ -108,11 +108,46 @@ public class AccountServiceTest {
 
     }
 
+    @Test
+    public void should_fail_when_execute_operations_with_zero_or_null_amount() {
+        //Given
+        String accountId = UUID.randomUUID().toString();
+
+        Assertions.assertThrows(
+                //Then
+                NullOrZeroAmountException.class,
+                //When
+                () -> accountService.deposit(accountId, 0d)
+        );
+
+        //And
+
+        Assertions.assertThrows(
+                //Then
+                NullOrZeroAmountException.class,
+                //When
+                () -> accountService.withdraw(accountId, null)
+        );
+    }
+
+    @Test
+    public void should_fail_when_execute_operations_with_negative_amount() {
+        //Given
+        String accountId = UUID.randomUUID().toString();
+
+        Assertions.assertThrows(
+                //Then
+                NegativeAmountException.class,
+                //When
+                () -> accountService.deposit(accountId, -100d)
+        );
+    }
 
     @Test
     public void should_success_when_execute_deposit_operation() {
         //Given
         String accountId = UUID.randomUUID().toString();
+        Mockito.when(accountRepository.existsAccountById(eq(accountId))).thenReturn(true);
         Mockito.when(accountRepository.getAccountById(eq(accountId))).thenReturn(Optional.of(Account.builder()
                 .id(accountId).build()));
         Mockito.when(operationRepository.findLastOperationByAccountId(eq(accountId)))
@@ -134,6 +169,7 @@ public class AccountServiceTest {
     public void should_success_when_execute_withdraw_operation() {
         //Given
         String accountId = UUID.randomUUID().toString();
+        Mockito.when(accountRepository.existsAccountById(eq(accountId))).thenReturn(true);
         Mockito.when(accountRepository.getAccountById(eq(accountId))).thenReturn(Optional.of(Account.builder()
                 .id(accountId).build()));
         Mockito.when(operationRepository.findLastOperationByAccountId(eq(accountId)))
@@ -156,6 +192,7 @@ public class AccountServiceTest {
     public void should_fail_when_execute_withdraw_operation_on_insufficient_balance() {
         //Given
         String accountId = UUID.randomUUID().toString();
+        Mockito.when(accountRepository.existsAccountById(eq(accountId))).thenReturn(true);
         Mockito.when(accountRepository.getAccountById(eq(accountId))).thenReturn(Optional.of(Account.builder()
                 .id(accountId).build()));
         Mockito.when(operationRepository.findLastOperationByAccountId(eq(accountId)))
@@ -173,6 +210,7 @@ public class AccountServiceTest {
     public void should_success_when_withdraw_all() {
         //Given
         String accountId = UUID.randomUUID().toString();
+        Mockito.when(accountRepository.existsAccountById(eq(accountId))).thenReturn(true);
         Mockito.when(accountRepository.getAccountById(eq(accountId))).thenReturn(Optional.of(Account.builder()
                 .id(accountId).build()));
         Mockito.when(operationRepository.findLastOperationByAccountId(eq(accountId)))
